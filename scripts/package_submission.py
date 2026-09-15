@@ -18,7 +18,7 @@ Android:
 ''',encoding='utf-8-sig')
 
 target=out/'LumiShelf-Complete-Submission.zip'
-include_dirs=['app','lib','public','supabase','tests']
+include_dirs=['app','lib','public','supabase','tests','scripts','assets']
 include_files=['README.md','package.json','package-lock.json','tsconfig.json','next.config.ts','eslint.config.mjs','.env.example']
 with ZipFile(target,'w',ZIP_DEFLATED) as z:
     z.write(readme,'README-ส่งอาจารย์.txt')
