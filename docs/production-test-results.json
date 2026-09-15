@@ -1,0 +1,67 @@
+{
+  "testedAt": "2026-09-14T12:10:44.102Z",
+  "base": "https://vibecode-gamma-murex.vercel.app",
+  "orderNumber": "LS-20260914-0BA78A3E311908D1",
+  "checks": [
+    {
+      "name": "Invalid checkout rejected",
+      "passed": true
+    },
+    {
+      "name": "Creates real PENDING order with server price",
+      "passed": true
+    },
+    {
+      "name": "No secret/hash in response",
+      "passed": true
+    },
+    {
+      "name": "Order ID alone cannot read order",
+      "passed": true
+    },
+    {
+      "name": "Wrong email cannot look up order",
+      "passed": true
+    },
+    {
+      "name": "Mock payment persists PAID and simulated email",
+      "passed": true
+    },
+    {
+      "name": "Signed URL downloads actual PDF",
+      "passed": true
+    },
+    {
+      "name": "Signed link expires in 15 minutes",
+      "passed": true
+    },
+    {
+      "name": "Tampered download token rejected",
+      "passed": true
+    },
+    {
+      "name": "Repeated mock payment is safe",
+      "passed": true
+    },
+    {
+      "name": "Correct number and email restore access",
+      "passed": true
+    },
+    {
+      "name": "Order remains PAID in new session",
+      "passed": true
+    },
+    {
+      "name": "Anonymous access to orders rejected",
+      "passed": true
+    },
+    {
+      "name": "Private PDF cannot be downloaded publicly",
+      "passed": true
+    },
+    {
+      "name": "Six books stored in Supabase",
+      "passed": true
+    }
+  ]
+}

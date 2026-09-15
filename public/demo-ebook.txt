@@ -1,0 +1,6 @@
+LumiShelf — DEMO E-BOOK
+
+ไฟล์นี้ใช้สำหรับพิสูจน์ขั้นตอนดาวน์โหลดในโหมดสาธิตเท่านั้น
+ไม่มีการขายหรือรับชำระเงินจริง
+
+ในโหมด Production ระบบจะสร้าง Signed URL อายุ 15 นาทีจาก Supabase Storage bucket แบบ private

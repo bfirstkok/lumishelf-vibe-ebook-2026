@@ -1,0 +1,5 @@
+LumiShelf Production
+https://vibecode-gamma-murex.vercel.app
+
+Vercel project: kok/vibecode
+Deployed: 2026-09-14
