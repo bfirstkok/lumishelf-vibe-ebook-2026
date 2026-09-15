@@ -1,116 +1,120 @@
 from pathlib import Path
-from html import escape
-import json, re
+import json
+from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib import colors
-from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak
+from reportlab.lib.utils import ImageReader
 from pypdf import PdfReader
 
-ROOT = Path(__file__).resolve().parents[1]
-BASE = ROOT.parent
-OUT = ROOT / 'private' / 'ebooks'
-OUT.mkdir(parents=True, exist_ok=True)
-pdfmetrics.registerFont(TTFont('Thai', 'C:/Windows/Fonts/tahoma.ttf'))
-pdfmetrics.registerFont(TTFont('ThaiBold', 'C:/Windows/Fonts/tahomabd.ttf'))
-body = ParagraphStyle('body', fontName='Thai', fontSize=11, leading=20, wordWrap='CJK', spaceAfter=8)
-title = ParagraphStyle('title', fontName='ThaiBold', fontSize=27, leading=36, wordWrap='CJK', spaceAfter=18, textColor=colors.HexColor('#7668e8'))
-heading = ParagraphStyle('heading', fontName='ThaiBold', fontSize=15, leading=25, wordWrap='CJK', spaceAfter=12)
-small = ParagraphStyle('small', fontName='Thai', fontSize=9, leading=15, wordWrap='CJK', spaceAfter=7)
-compact = ParagraphStyle('compact', fontName='Thai', fontSize=7.2, leading=10.5, wordWrap='CJK', spaceAfter=3)
+ROOT=Path(__file__).resolve().parents[1]; BASE=ROOT.parent; OUT=ROOT/'private'/'ebooks'; ART=ROOT/'assets'/'ebook-illustrations'
+OUT.mkdir(parents=True,exist_ok=True)
+W,H=960,540
+pdfmetrics.registerFont(TTFont('Thai','C:/Windows/Fonts/tahoma.ttf'));pdfmetrics.registerFont(TTFont('ThaiB','C:/Windows/Fonts/tahomabd.ttf'))
 
-def p(text, style=body):
-    return Paragraph(escape(text), style)
+def hx(v): return colors.HexColor(v)
+def wrap(text,font,size,width):
+    lines=[]
+    for para in text.split('\n'):
+        words=para.split(' ');line=''
+        for word in words:
+            trial=(line+' '+word).strip()
+            if pdfmetrics.stringWidth(trial,font,size)<=width: line=trial
+            elif line:
+                lines.append(line);line=word
+            else:
+                chunk=''
+                for ch in word:
+                    if pdfmetrics.stringWidth(chunk+ch,font,size)>width and chunk: lines.append(chunk);chunk=ch
+                    else: chunk+=ch
+                line=chunk
+        if line: lines.append(line)
+    return lines
 
-def footer(canvas, doc):
-    canvas.saveState()
-    canvas.setStrokeColor(colors.HexColor('#ded9ce'))
-    canvas.line(44,40,551,40)
-    canvas.setFont('Thai',8)
-    canvas.drawString(44,26,'LumiShelf | คู่มือประกอบโครงงานเพื่อการศึกษา')
-    canvas.drawRightString(551,26,str(doc.page))
-    canvas.restoreState()
+def text(c,s,x,y,width,size=18,color='#25243A',font='Thai',leading=None,max_lines=99):
+    c.setFont(font,size);c.setFillColor(hx(color));leading=leading or size*1.45
+    for line in wrap(s,font,size,width)[:max_lines]: c.drawString(x,y,line);y-=leading
+    return y
 
-projects = [
-    ('media-player-pro','Media Player PRO','01_Media_Player_PRO','ui-preview-anime.png',
-     'Sakura Beats: เครื่องเล่นเพลงธีม Anime Night Edition',
-     ['เปิดโปรแกรมแล้วกดเพิ่มเพลง เลือกไฟล์เสียงที่มีสิทธิ์ใช้งานหลายไฟล์ เพลงจะปรากฏใน Playlist ดับเบิลคลิกรายการเพื่อเริ่มเล่น',
-      'ใช้ Play/Pause เพื่อหยุดชั่วคราวและเล่นต่อ ใช้ Stop เมื่อต้องการเริ่มใหม่ เลื่อนแถบเวลาเพื่อข้ามตำแหน่ง ปรับระดับเสียงหรือปิดเสียงตามต้องการ',
-      'ลองเปิด Shuffle แล้วใช้ Next จากนั้นเลือก Repeat เพลงเดียวหรือทั้งรายการ เปรียบเทียบพฤติกรรมเมื่อเพลงจบ',
-      'กด Favorite เพื่อทำเครื่องหมายเพลง ใช้ช่องค้นหาและตัวกรองเพลงโปรด คลังเพลงสามารถซ่อนได้เพื่อเพิ่มพื้นที่หน้าเล่น',
-      'ส่งออก Playlist เป็น M3U8 แล้วนำเข้ากลับ ไฟล์รายการอ้างอิงตำแหน่งเพลง ไม่ได้บรรจุไฟล์เพลงไว้ด้วย จึงต้องเก็บเพลงในตำแหน่งที่เข้าถึงได้'],
-     'แยกสถานะการเล่นออกจากเอฟเฟกต์หน้าจอ ปุ่มและ slider ส่งคำสั่งไปยังตัวเล่น ขณะที่เหตุการณ์จากตัวเล่นอัปเดตเวลาและชื่อเพลง แอนิเมชันไม่ควรเป็นตัวกำหนดว่าเพลงกำลังเล่นหรือหยุด'),
-    ('tarot-app','Tarot App PRO','02_Tarot_App_PRO','ui-preview.png',
-     'ไพ่สามใบสำหรับอดีต ปัจจุบัน และอนาคต',
-     ['เปิดแอปและเริ่มเปิดไพ่ จะเห็นไพ่สามตำแหน่งสำหรับอดีต ปัจจุบัน และอนาคต อ่านชื่อและคำอธิบายแยกตามตำแหน่ง',
-      'กดเปิดไพ่รอบใหม่หลายครั้ง ไพ่ภายในรอบเดียวกันต้องไม่ซ้ำกัน แต่สามารถพบไพ่เดิมในคนละรอบได้ตามผลการสุ่ม',
-      'เลือกไฟล์เพลงประกอบจากเครื่อง แล้วลองเล่น พัก หยุด และปรับระดับเสียง ไพ่ยังคงใช้งานได้แม้ไม่ได้เลือกเพลง',
-      'หากรูปไพ่หายไป แอปควรแสดงภาพสำรองหรือข้อความที่เข้าใจได้โดยไม่ปิดตัวเอง ตรวจว่าภาพ ชื่อ และความหมายมาจากข้อมูลไพ่ใบเดียวกัน',
-      'ใช้ข้อความไพ่เพื่อความบันเทิงและการสะท้อนความคิด ไม่ใช้เป็นข้อพิสูจน์อนาคตหรือทดแทนคำแนะนำจากผู้เชี่ยวชาญ'],
-     'cards.py เก็บข้อมูลไพ่ ส่วน main.py จัดการหน้าต่างและเหตุการณ์ การสุ่มแบบไม่คืนค่าภายในหนึ่งรอบทำให้ได้ไพ่สามใบไม่ซ้ำกัน การทดสอบควรตรวจคุณสมบัตินี้แทนการบังคับชื่อไพ่ที่สุ่มได้'),
-    ('sqlite-task-manager-pro','SQLite Task Manager PRO','03_SQLite_Task_Manager_PRO','ui-preview-pro.png',
-     'Focus Flow: จัดการงานและเก็บข้อมูลด้วย SQLite',
-     ['เข้าสู่ระบบสาธิตตามคู่มือในโปรเจกต์ แล้วเพิ่มงานที่มีชื่อชัดเจน ระบุหมวดหมู่ ความสำคัญ และกำหนดส่งให้เหมาะกับงาน',
-      'ลอง Quick Add และเปลี่ยนสถานะจากยังไม่เริ่มเป็นกำลังทำ จากนั้นเสร็จแล้ว ตรวจว่าตาราง บอร์ด และตัวเลขสรุปเปลี่ยนสอดคล้องกัน',
-      'ใช้ช่องค้นหาและตัวกรองเพื่อหางานที่ต้องทำวันนี้ ปักงานโปรด และตั้งเวลาคาดการณ์ โหมดโฟกัสมี Pomodoro 25 นาที',
-      'ส่งออกข้อมูลเป็น CSV หรือ JSON ก่อนทดลองนำเข้าไฟล์ ตรวจหัวตารางและรูปแบบวันที่ หากข้อมูลไม่ถูกต้องต้องแจ้งข้อผิดพลาดที่แก้ไขได้',
-      'ทดลองย้ายงานไปถังขยะและกู้คืน จากนั้นปิดเปิดโปรแกรมเพื่อตรวจการบันทึก สำรองฐานข้อมูลก่อนกู้คืน เพราะการ restore อาจแทนที่ข้อมูลปัจจุบัน'],
-     'database.py แยกการจัดเก็บข้อมูลออกจาก GUI ใช้คำสั่ง SQL แบบมีพารามิเตอร์สำหรับค่าจากผู้ใช้ รหัสผ่านเก็บเป็น PBKDF2 hash พร้อม salt ข้อมูลสถานะและวันเสร็จต้องเปลี่ยนร่วมกันเพื่อให้ Dashboard คำนวณได้ถูกต้อง'),
-]
+def rounded(c,x,y,w,h,fill='#FFFFFF',stroke=None,r=18):
+    c.setFillColor(hx(fill));c.setStrokeColor(hx(stroke or fill));c.roundRect(x,y,w,h,r,fill=1,stroke=1 if stroke else 0)
 
-counts = {}
-for slug,name,folder,shot,subtitle,steps,architecture in projects:
-    src = BASE / folder
-    story = [Spacer(1,65),p('LUMISHELF / PROJECT GUIDE',small),p(name,title),p(subtitle,heading),
-             p('คู่มือจากใบงาน Desktop Application AI Agent PyQt6'),
-             p('เนื้อหาเรียบเรียงจาก README ข้อกำหนด และเอกสารออกแบบของโปรเจกต์เดิม ภาพหน้าจอเป็นหลักฐานที่จัดเก็บในโฟลเดอร์งาน'),
-             p('สารบัญ: ภาพรวม / หน้าจอ / วิธีใช้ / ข้อกำหนด / การพัฒนาและตรวจสอบ / ที่มา',small),PageBreak(),
-             p('01 / หน้าจอและจุดเริ่มต้น',heading)]
-    shotpath=src/'docs'/shot
-    if shotpath.exists():
-        img=Image(str(shotpath)); img._restrictSize(490,365); story += [img,Spacer(1,15)]
-    story += [p('หน้าจอของโปรเจกต์เดิม ใช้ประกอบคำอธิบายตำแหน่งการทำงาน ไม่ใช่ภาพทดสอบใหม่ในวันที่จัดทำหนังสือ',small),p(subtitle),PageBreak(),p('02 / วิธีใช้งานทีละขั้น',heading)]
-    for i,step in enumerate(steps,1): story += [p(f'{i}. {step}'),Spacer(1,8)]
-    story += [PageBreak(),p('03 / ข้อกำหนดจากใบงานเดิม',heading)]
-    req=(src/'docs'/'01_REQUIREMENTS.md').read_text(encoding='utf-8-sig')
-    for line in req.splitlines():
-        if line.strip(): story.append(p(re.sub(r'^[#]+\s*','',line.replace('`','')),compact))
-    story += [PageBreak(),p('04 / แนวทางพัฒนาและทดสอบ',heading),p(architecture),
-              p('ทดสอบเส้นทางปกติก่อน จากนั้นทดสอบข้อมูลว่าง ไฟล์หาย หรือค่าที่ไม่ถูกต้อง โดยตรวจทั้งข้อความบนหน้าจอและข้อมูลหลังปิดเปิดโปรแกรม'),
-              p('รันจาก source: เปิด terminal ในโฟลเดอร์แอป แล้วใช้ Python จาก virtual environment ที่ติดตั้ง PyQt6 รัน main.py',small),
-              p('ทดสอบ: python -m unittest discover -s tests -v',small),
-              p('Build โปรแกรม Windows: ใช้ build.ps1 ของโปรเจกต์ และส่งทั้งโฟลเดอร์ dist ของแอป ไม่ส่งเฉพาะ EXE หาก build แบบ onedir',small),
-              p('การเปลี่ยน UI ควรตรวจว่าฟังก์ชันเดิมยังทำงาน โดยเฉพาะปุ่มที่มีแอนิเมชันและเหตุการณ์ที่เกิดระหว่างโหลดไฟล์'),
-              PageBreak(),p('05 / อ้างอิงและไฟล์ประกอบ',heading),
-              p(f'แหล่งข้อมูลในโฟลเดอร์งานเดิม: {folder}',small)]
-    for f in ['README.md','docs/01_REQUIREMENTS.md','main.py','tests/','TEST_REPORT.md']:
-        story.append(p(f,small))
-    story += [p('ขอบเขตของหนังสือ',heading),p('หนังสือเป็นคู่มือประกอบแอปและแนวทางตรวจสอบ ไม่รวมเพลงเชิงพาณิชย์หรือข้อมูลส่วนตัว ไม่ใช่หนังสือสอนทุกบรรทัดของ source code'),
-              p('แบบฝึกต่อยอด',heading),p('เลือกหนึ่งฟังก์ชันที่สนใจ อธิบาย input, output และ error case แล้วเพิ่มฟังก์ชันทีละส่วน ทดสอบก่อนและหลังการเปลี่ยน เพื่อให้เห็นผลอย่างตรวจสอบได้')]
-    target=OUT/f'{slug}.pdf'
-    SimpleDocTemplate(str(target),pagesize=A4,rightMargin=48,leftMargin=48,topMargin=48,bottomMargin=56,title=name).build(story,onFirstPage=footer,onLaterPages=footer)
-    counts[slug]=len(PdfReader(target).pages)
+def header(c,kicker,title,accent='#7668E8',dark=False):
+    c.setFillColor(hx('#111327' if dark else '#F7F5FF'));c.rect(0,0,W,H,fill=1,stroke=0)
+    c.setFillColor(hx(accent));c.roundRect(44,482,122,25,12,fill=1,stroke=0)
+    c.setFillColor(colors.white);c.setFont('ThaiB',10);c.drawCentredString(105,490,kicker)
+    text(c,title,44,458,840,28,'#FFFFFF' if dark else '#23213A','ThaiB',38,2)
 
-# Three original catalog items are short, original sample texts.
-samples=[
-('city-where-stars-sleep','เมืองที่ดาวหลับใหล','นิยายสั้นต้นฉบับ',[
-'ทุกคืน ลินจะเดินผ่านสถานีรถไฟที่ไม่มีขบวนใดจอดอยู่แล้ว เธอรับหน้าที่ซ่อมโคมไฟริมทาง แต่คืนหนึ่งกลับพบแสงเล็ก ๆ สั่นอยู่ในกล่องเครื่องมือ แสงนั้นไม่ส่องพื้น มันส่องภาพความทรงจำของคนที่เดินผ่าน',
-'ชายขายขนมเห็นภาพจักรยานคันแรก เด็กนักเรียนเห็นมือที่เคยจับตนข้ามถนน ส่วนลินเห็นหน้าต่างห้องเก่าที่เปิดรอใครบางคน เธอเริ่มเข้าใจว่าเมืองไม่ได้มืดเพราะโคมไฟเสีย แต่เพราะผู้คนเลิกหยุดมองสิ่งที่ยังรัก',
-'ลินไม่ได้ติดตั้งแสงนั้นบนยอดตึก เธอวางมันบนม้านั่งสถานี ทุกเย็นคนในเมืองผลัดกันมานั่งเล่าเรื่องที่เกือบลืม เมื่อรุ่งเช้ามาถึง กล่องว่างเปล่า แต่หน้าต่างแต่ละบ้านเริ่มมีแสงอุ่น ๆ อีกครั้ง ดาวของเมืองไม่ได้ตื่นบนฟ้า มันตื่นในบทสนทนาสั้น ๆ ระหว่างคนที่กลับมาฟังกัน']),
-('small-systems-better-life','ออกแบบชีวิตด้วยระบบเล็ก ๆ','คู่มือสั้นต้นฉบับ',[
-'เริ่มจากพฤติกรรมเดียวที่ทำซ้ำได้ เช่น หลังวางกระเป๋าให้เขียนงานสำคัญของพรุ่งนี้หนึ่งข้อ ระบบที่ดีลดแรงตัดสินใจ ไม่จำเป็นต้องบังคับให้ทุกวันมีประสิทธิภาพเท่ากัน',
-'แบ่งงานให้มีขั้นเริ่มที่ใช้เวลาไม่เกินห้านาที หากอยากอ่านหนังสือให้เตรียมหน้าอ่านไว้ หากอยากเขียนรายงานให้เปิดไฟล์และเขียนหัวข้อแรก ใช้เวลาและพื้นที่เดิมเป็นตัวช่วยเตือน',
-'ทบทวนสัปดาห์ละครั้งว่าอะไรช่วยและอะไรขัดขวาง หากพลาดหนึ่งวันให้กลับมาในขนาดเล็กลง อย่าใช้สถิติตัดสินคุณค่าของตัวเอง จดสิ่งที่ทำได้จริงและปรับระบบให้พอดีกับเวลาที่มี']),
-('coffee-and-rain','กาแฟหนึ่งแก้วกับฤดูฝน','เรื่องสั้นต้นฉบับ',[
-'ฝนเริ่มตกก่อนร้านปิดห้านาที เจ้าของร้านกำลังเก็บเก้าอี้เมื่อหญิงคนหนึ่งเดินเข้ามาพร้อมซองจดหมายที่เปียกมุมกระดาษ เธอสั่งน้ำเปล่าและถามว่านั่งรอให้ฝนหยุดได้ไหม',
-'เขาวางผ้าแห้งข้างแก้ว เธอเล่าว่าซองนั้นเป็นใบตอบรับงานที่เมืองอื่น และเธอไม่แน่ใจว่าการเริ่มใหม่หมายถึงการทิ้งสิ่งเดิมหรือไม่ เจ้าของร้านมองเก้าอี้ที่ซื้อใหม่แทนตัวเก่าซึ่งขาหัก แล้วตอบว่าบางอย่างเปลี่ยนที่อยู่ แต่ความหมายยังอยู่กับเรา',
-'เมื่อฝนซา เธอพับซองใส่กระเป๋าอย่างระวังและขอบคุณสำหรับน้ำหนึ่งแก้ว วันต่อมามีโปสการ์ดเล็ก ๆ สอดใต้ประตูร้าน เขียนเพียงว่าถึงสถานีทันแล้ว เจ้าของร้านติดมันไว้ข้างเครื่องชงกาแฟ เวลาฝนตก เขาจะเก็บเก้าอี้ช้าลงอีกห้านาที'])]
-for slug,name,kind,paragraphs in samples:
-    target=OUT/f'{slug}.pdf'
-    story=[p(name,title),p(kind,heading)]+[p(x) for x in paragraphs]+[Spacer(1,20),p('ฉบับอ่านสั้นสำหรับร้านสาธิต LumiShelf เนื้อหานี้จัดทำขึ้นใหม่เพื่อเป็นไฟล์ดาวน์โหลดตัวอย่าง',small)]
-    SimpleDocTemplate(str(target),pagesize=A4,rightMargin=48,leftMargin=48,topMargin=48,bottomMargin=56,title=name).build(story,onFirstPage=footer,onLaterPages=footer)
-    counts[slug]=len(PdfReader(target).pages)
-(OUT/'manifest.json').write_text(json.dumps(counts,ensure_ascii=False,indent=2),encoding='utf-8')
-print(json.dumps(counts,ensure_ascii=False))
+def footer(c,page,total,dark=False):
+    c.setFillColor(hx('#A8A3BE' if dark else '#77728E'));c.setFont('Thai',8)
+    c.drawString(44,22,'LumiShelf • E-book Visual Edition');c.drawRightString(916,22,f'{page:02d} / {total:02d}')
+
+def image_fit(c,path,x,y,w,h):
+    im=ImageReader(str(path));iw,ih=im.getSize();scale=min(w/iw,h/ih);dw,dh=iw*scale,ih*scale
+    c.drawImage(im,x+(w-dw)/2,y+(h-dh)/2,dw,dh,mask='auto')
+
+def cover(c,title,subtitle,art,accent,total):
+    c.drawImage(ImageReader(str(art)),0,0,W,H,mask='auto')
+    c.saveState();c.setFillAlpha(.74);c.setFillColor(hx('#101125'));c.roundRect(36,54,470,432,28,fill=1,stroke=0);c.restoreState()
+    c.setFillColor(hx(accent));c.roundRect(72,420,142,28,14,fill=1,stroke=0)
+    c.setFillColor(colors.white);c.setFont('ThaiB',10);c.drawCentredString(143,429,'LUMISHELF GUIDE')
+    y=text(c,title,72,375,390,36,'#FFFFFF','ThaiB',44,3)
+    y=text(c,subtitle,72,y-10,385,17,'#E9E7F9','Thai',25,4)
+    c.setStrokeColor(hx(accent));c.setLineWidth(4);c.line(72,102,210,102)
+    text(c,'ฉบับภาพประกอบ • อ่านง่ายแบบสไลด์',72,86,350,11,'#D9D6EC','Thai',16,2)
+    footer(c,1,total,True);c.showPage()
+
+def feature_cards(c,items,accent):
+    for i,(name,desc) in enumerate(items):
+        col=i%3;row=i//3;x=44+col*292;y=265-row*174
+        rounded(c,x,y,270,142,'#FFFFFF','#E2DEF2',16);c.setFillColor(hx(accent));c.circle(x+28,y+108,14,fill=1,stroke=0)
+        c.setFillColor(colors.white);c.setFont('ThaiB',10);c.drawCentredString(x+28,y+104,str(i+1))
+        text(c,name,x+50,y+116,195,15,'#28243C','ThaiB',20,2);text(c,desc,x+20,y+75,230,10.5,'#625E73','Thai',16,4)
+
+technical=[
+dict(slug='media-player-pro',title='Media Player PRO',subtitle='Sakura Beats • เครื่องเล่นเพลงธีม Anime Night',accent='#EC79B9',folder='01_Media_Player_PRO',shot='ui-preview-anime.png',intro='เครื่องเล่นเพลงบน Desktop ที่รวม Playlist, Favorite และการควบคุมเสียงไว้ในหน้าจอเดียว พร้อมแอนิเมชันปุ่มที่ช่วยให้การใช้งานมีชีวิตชีวา',features=[('Playlist','เพิ่มหลายไฟล์ ค้นหา และจัดลำดับเพลง'),('Playback','Play, Pause, Stop, Next และแถบเวลา'),('Favorite','ทำเครื่องหมายเพลงโปรดและกรองได้ทันที'),('Modes','Shuffle และ Repeat เพลงเดียวหรือทั้งรายการ'),('Sound','ปรับระดับเสียง ปิดเสียง และความเร็ว 0.75–2x'),('Import / Export','บันทึกรายการเพลงเป็น M3U8 แล้วนำกลับมาใช้')],steps=['เลือกไฟล์เสียงที่มีสิทธิ์ใช้งาน','ตรวจชื่อเพลงใน Playlist','กดเล่นและลองเลื่อนเวลา','เลือก Shuffle หรือ Repeat','ส่งออก Playlist ก่อนปิดโปรแกรม'],arch=[('FILE','MP3 / WAV / FLAC'),('PLAYER','Qt Multimedia'),('STATE','Playlist + Favorite'),('UI','Anime controls')],tips=['ทดสอบปุ่มระหว่างกำลังโหลดไฟล์','Playlist อ้างพาธเพลง ไม่ได้บรรจุเพลง','แยกสถานะการเล่นออกจากแอนิเมชัน UI']),
+dict(slug='tarot-app',title='Tarot App',subtitle='อดีต • ปัจจุบัน • อนาคต ผ่านไพ่สามใบ',accent='#BA8EF1',folder='02_Tarot_App_PRO',shot='ui-preview.png',intro='แอปเปิดไพ่สามตำแหน่งที่จัดข้อมูลภาพ ชื่อ และความหมายเป็นระบบ สุ่มไพ่ไม่ซ้ำกันภายในรอบ พร้อมเสียงประกอบที่เปิดหรือปิดได้',features=[('Three Cards','วางไพ่สำหรับอดีต ปัจจุบัน และอนาคต'),('Unique Draw','ไพ่สามใบในหนึ่งรอบไม่ซ้ำกัน'),('Meaning','ชื่อ ภาพ และคำอธิบายมาจากข้อมูลใบเดียวกัน'),('New Reading','สุ่มรอบใหม่ได้โดยไม่ต้องปิดแอป'),('Music','เล่น พัก หยุด และปรับเสียงประกอบ'),('Fallback','ภาพหายแล้วยังแจ้งผลได้โดยไม่ปิดตัวเอง')],steps=['ตั้งคำถามที่อยากทบทวน','กดเปิดไพ่รอบใหม่','อ่านความหมายทีละตำแหน่ง','สังเกตเรื่องร่วมของไพ่สามใบ','ใช้ผลเพื่อความบันเทิงและสะท้อนใจ'],arch=[('DATA','cards.py'),('RANDOM','sample 3 cards'),('VIEW','Card widgets'),('AUDIO','Optional music')],tips=['ทดสอบว่าไพ่ในรอบไม่ซ้ำ','รูปหายต้องมีภาพหรือข้อความสำรอง','ไม่ใช้คำทำนายแทนคำแนะนำผู้เชี่ยวชาญ']),
+dict(slug='sqlite-task-manager-pro',title='SQLite Task Manager PRO',subtitle='Focus Flow • งาน ข้อมูล และเวลาที่อยู่ด้วยกัน',accent='#55C9B5',folder='03_SQLite_Task_Manager_PRO',shot='ui-preview-pro.png',intro='แอปจัดการงานที่เก็บข้อมูลใน SQLite มีสถานะ ความสำคัญ หมวดหมู่ Dashboard และ Pomodoro พร้อมเครื่องมือสำรองและนำเข้าข้อมูล',features=[('Tasks','เพิ่ม แก้ไข ทำซ้ำ และเปลี่ยนสถานะ'),('Views','ตาราง บอร์ด และ Dashboard สรุปภาพรวม'),('Search','ค้นหาและกรองหมวดหมู่หรือความสำคัญ'),('Focus','Pomodoro 25 นาทีและเวลาคาดการณ์'),('Safety','ถังขยะ กู้คืน และสำรองฐานข้อมูล'),('Exchange','นำเข้าและส่งออก CSV / JSON')],steps=['เข้าสู่ระบบสาธิต','เพิ่มงานพร้อมวันส่งและความสำคัญ','เปลี่ยนสถานะจาก To do ไป Doing','ใช้ Focus timer ระหว่างลงมือ','สำรองข้อมูลก่อน Restore'],arch=[('INPUT','Task form'),('LOGIC','Validation'),('DATABASE','SQLite'),('VIEW','Table + Board')],tips=['SQL ใช้พารามิเตอร์แทนการต่อสตริง','Password เก็บ PBKDF2 hash พร้อม salt','สถานะและวันเสร็จต้องเปลี่ยนสอดคล้องกัน'])]
+
+def build_technical(d):
+    out=OUT/(d['slug']+'.pdf');c=canvas.Canvas(str(out),pagesize=(W,H));art=ART/(d['slug']+'.png');total=6
+    cover(c,d['title'],d['subtitle'],art,d['accent'],total)
+    header(c,'01 • OVERVIEW','รู้จักแอปในหนึ่งหน้า',d['accent']);rounded(c,44,62,500,354,'#FFFFFF','#E2DEF2');image_fit(c,BASE/d['folder']/'docs'/d['shot'],62,82,464,314);text(c,d['intro'],580,380,330,17,'#312E48','ThaiB',27,6);text(c,'ภาพหน้าจอจริงจากโปรเจกต์เดิม',580,145,300,10,'#77728E','Thai',15,2);footer(c,2,total);c.showPage()
+    header(c,'02 • FEATURES','ทำอะไรได้บ้าง',d['accent']);feature_cards(c,d['features'],d['accent']);footer(c,3,total);c.showPage()
+    header(c,'03 • FLOW','เส้นทางการใช้งาน',d['accent']);
+    for i,step in enumerate(d['steps']):
+        x=55+i*177;rounded(c,x,205,150,150,'#FFFFFF','#DDD8EE',18);c.setFillColor(hx(d['accent']));c.circle(x+75,315,24,fill=1,stroke=0);c.setFillColor(colors.white);c.setFont('ThaiB',14);c.drawCentredString(x+75,310,str(i+1));text(c,step,x+15,270,120,11,'#343047','ThaiB',17,4)
+        if i<4:c.setFillColor(hx(d['accent']));c.setFont('ThaiB',22);c.drawString(x+155,265,'›')
+    text(c,'เคล็ดลับ: ทดลองเส้นทางปกติก่อน แล้วค่อยทดสอบไฟล์ว่าง ไฟล์หาย และค่าที่ไม่ถูกต้อง',80,150,800,14,'#5C5770','Thai',22,3);footer(c,4,total);c.showPage()
+    header(c,'04 • ARCHITECTURE','เบื้องหลังแบบเห็นภาพ',d['accent']);
+    for i,(a,b) in enumerate(d['arch']):
+        x=55+i*220;rounded(c,x,220,185,130,'#FFFFFF','#DDD8EE',18);text(c,a,x+18,320,150,10,d['accent'],'ThaiB',14,1);text(c,b,x+18,282,150,14,'#29263D','ThaiB',21,3)
+        if i<3:c.setFillColor(hx(d['accent']));c.setFont('ThaiB',24);c.drawString(x+194,270,'→')
+    text(c,'แนวคิดสำคัญ: แยก Input, Logic, Storage และ View ทำให้แก้แต่ละส่วนได้โดยไม่ทำให้ทั้งแอปพัง',100,150,760,15,'#555066','Thai',24,3);footer(c,5,total);c.showPage()
+    header(c,'05 • PRACTICE','ลองทำเองและตรวจงาน',d['accent']);rounded(c,44,80,560,335,'#FFFFFF','#DDD8EE',18)
+    y=370
+    for i,t in enumerate(d['tips'],1):c.setFillColor(hx(d['accent']));c.circle(78,y+2,12,fill=1,stroke=0);c.setFillColor(colors.white);c.setFont('ThaiB',9);c.drawCentredString(78,y-1,'✓');y=text(c,t,105,y+8,450,14,'#312E48','ThaiB',22,3)-25
+    rounded(c,640,115,270,270,'#23223B');text(c,'CHECKLIST',670,345,200,11,d['accent'],'ThaiB',16,1);text(c,'□ เปิดโปรแกรมได้\n□ เส้นทางหลักทำงาน\n□ ข้อมูลยังอยู่หลังเปิดใหม่\n□ Error มีข้อความที่เข้าใจได้\n□ UI ไม่ค้างระหว่างทำงาน',670,310,205,13,'#FFFFFF','Thai',30,8);footer(c,6,total);c.save()
+
+fiction=[
+dict(slug='city-where-stars-sleep',title='เมืองที่ดาวหลับใหล',subtitle='เมื่อความทรงจำส่องสว่างกว่าท้องฟ้า',accent='#F2B45B',premise='ในเมืองริมแม่น้ำที่เก็บดาวไว้ในโคมแก้ว นักซ่อมโคมคนหนึ่งพบว่าดาวที่ดับไม่ได้หายไป แต่มันกำลังเก็บความทรงจำที่ผู้คนไม่กล้าพูดออกมา',beats=[('แสงที่หาย','โคมตามถนนเริ่มมืดลงทีละดวง'),('เสียงในโคม','ทุกดวงซ่อนความทรงจำของใครบางคน'),('คืนที่สว่าง','เมืองกลับมาฟังกันและกันอีกครั้ง')],ideas=['บางครั้งสิ่งที่ต้องซ่อมไม่ใช่แสง แต่คือการรับฟัง','ความทรงจำหนักได้ แต่แบ่งกันถือได้','การเริ่มพูดความจริงคือแสงดวงแรก']),
+dict(slug='small-systems-better-life',title='ออกแบบชีวิตด้วยระบบเล็ก ๆ',subtitle='เริ่มให้ง่าย แล้วค่อยเติบโตอย่างยั่งยืน',accent='#86B89B',premise='เราไม่จำเป็นต้องพึ่งแรงฮึดทุกวัน ระบบที่ดีทำให้การเริ่มต้นเล็กพอที่จะลงมือ และชัดพอที่จะรู้ว่าวันนี้ทำสำเร็จแล้ว',beats=[('ลดแรงเริ่ม','วางอุปกรณ์หรือขั้นแรกไว้ให้เห็น'),('ผูกกับกิจวัตร','ทำสิ่งใหม่ต่อจากสิ่งที่ทำอยู่แล้ว'),('ทบทวนเบา ๆ','ปรับระบบให้เข้ากับชีวิตจริงทุกสัปดาห์')],ideas=['เป้าหมายบอกทิศทาง ระบบพาเราเดิน','เล็กแต่ทำซ้ำ ชนะใหญ่แต่เริ่มยาก','ระบบที่ดีต้องให้อภัยวันที่ไม่พร้อม']),
+dict(slug='coffee-and-rain',title='กาแฟหนึ่งแก้วกับฤดูฝน',subtitle='เรื่องสั้นสำหรับวันที่ใจต้องการที่พัก',accent='#D18B57',premise='ก่อนร้านปิดในคืนฝนตก คนแปลกหน้าสองคนเลือกโต๊ะคนละมุม บทสนทนาสั้น ๆ ระหว่างเสียงฝนทำให้ทั้งคู่เห็นว่าการเริ่มใหม่ไม่จำเป็นต้องรอให้ฟ้าเปิด',beats=[('หลบฝน','ทั้งคู่เข้าร้านด้วยเรื่องที่ยังตัดสินใจไม่ได้'),('แก้วอุ่น','คำถามธรรมดาเปิดพื้นที่ให้เล่าอย่างซื่อตรง'),('ก้าวแรก','ฝนยังตก แต่ประตูร้านเปิดสู่ทางกลับบ้าน')],ideas=['การพักไม่ใช่การถอยหลัง','คนแปลกหน้าอาจคืนมุมมองที่เราทำหล่นไว้','ความกล้ามักเริ่มจากก้าวเล็ก ๆ ในวันที่ยังไม่พร้อม'])]
+
+def build_fiction(d):
+    out=OUT/(d['slug']+'.pdf');c=canvas.Canvas(str(out),pagesize=(W,H));art=ART/(d['slug']+'.png');total=4
+    cover(c,d['title'],d['subtitle'],art,d['accent'],total)
+    header(c,'01 • STORY','โลกของเรื่อง',d['accent']);rounded(c,44,72,400,340,'#FFFFFF','#E2DEF2',20);text(c,d['premise'],76,360,335,18,'#312E48','ThaiB',29,9);rounded(c,480,72,436,340,'#EEEAF8');image_fit(c,art,490,82,416,320);footer(c,2,total);c.showPage()
+    header(c,'02 • THREE BEATS','สามจังหวะของเรื่อง',d['accent']);
+    for i,(name,desc) in enumerate(d['beats']):
+        x=55+i*300;rounded(c,x,155,270,235,'#FFFFFF','#E2DEF2',20);c.setFillColor(hx(d['accent']));c.circle(x+40,340,20,fill=1,stroke=0);c.setFillColor(colors.white);c.setFont('ThaiB',12);c.drawCentredString(x+40,336,str(i+1));text(c,name,x+25,292,220,19,'#2C2940','ThaiB',26,2);text(c,desc,x+25,235,220,13,'#625E73','Thai',21,5)
+    footer(c,3,total);c.showPage()
+    header(c,'03 • REFLECTION','สิ่งที่อยากชวนคิด',d['accent']);rounded(c,44,90,872,320,'#24233B')
+    y=350
+    for idea in d['ideas']:
+        c.setFillColor(hx(d['accent']));c.circle(82,y+1,8,fill=1,stroke=0);y=text(c,idea,110,y+10,750,17,'#FFFFFF','ThaiB',27,3)-28
+    text(c,'ลองเลือกหนึ่งประโยค แล้วเขียนต่ออีกสามบรรทัดจากประสบการณ์ของคุณ',110,128,740,12,'#D8D4E8','Thai',19,3);footer(c,4,total,True);c.save()
+
+for d in technical:build_technical(d)
+for d in fiction:build_fiction(d)
+counts={p.stem:len(PdfReader(str(p)).pages) for p in OUT.glob('*.pdf')};(OUT/'manifest.json').write_text(json.dumps(counts,ensure_ascii=False,indent=2),encoding='utf-8');print(json.dumps(counts,ensure_ascii=False))
