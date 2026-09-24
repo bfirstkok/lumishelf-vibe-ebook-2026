@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>DigiHub — Japanese Anime Digital Store Design</title>
+  <meta name="description" content="รายละเอียดแนวคิดการออกแบบ DigiHub Mini Project: Web, Desktop และ Mobile App">
+  <style>
+    :root{--pink:#ff5ca8;--blue:#5aa7ff;--violet:#9a7bff;--mint:#7adfc9;--ink:#14224a;--muted:#63708d}
+    *{box-sizing:border-box}body{margin:0;font-family:Arial,"Noto Sans Thai","Segoe UI",sans-serif;color:var(--ink);background:radial-gradient(circle at 10% 0%,#ffd6e822,transparent 30%),radial-gradient(circle at 90% 5%,#b9d9ff33,transparent 32%),linear-gradient(#fff,#f8fbff 45%,#fff8fc)}
+    .wrap{max-width:1180px;margin:auto;padding:28px 20px 70px}.hero{position:relative;overflow:hidden;display:grid;grid-template-columns:1.15fr .85fr;gap:28px;padding:52px;border:1px solid #e8ebf4;border-radius:34px;background:linear-gradient(135deg,#edf7ff,#fff1f7 52%,#f1ecff);box-shadow:0 24px 70px #4e4f8c18}.hero:after{content:"✿  ❀  ✿";position:absolute;right:28px;top:18px;color:var(--pink);letter-spacing:12px}.badge{display:inline-block;padding:9px 14px;border:1px solid #eadbff;border-radius:999px;background:#ffffffcc;color:#7657c8;font-size:12px;font-weight:800}.hero h1{font-size:clamp(42px,6vw,72px);line-height:1.03;letter-spacing:-.04em;margin:20px 0 14px}.hero p{font-size:18px;line-height:1.8;color:#4e5e80}.tags{display:flex;flex-wrap:wrap;gap:9px}.tags span{padding:10px 14px;border:1px solid #e6eaf4;border-radius:14px;background:#fff;font-size:13px;font-weight:800}.art{display:flex;align-items:center}.window{width:100%;padding:18px;border:1px solid #e4e8f2;border-radius:26px;background:#fff;box-shadow:0 18px 45px #53609b22;transform:rotate(2deg)}.dots{display:flex;gap:6px;margin-bottom:20px}.dots i{width:10px;height:10px;border-radius:50%;background:#ff9dc4}.dots i:nth-child(2){background:#ffd88d}.dots i:nth-child(3){background:#8fe1ca}.mascot{display:flex;gap:18px;align-items:center;padding:28px;border-radius:20px;background:linear-gradient(135deg,#eaf6ff,#fff0f7)}.cat{width:86px;height:86px;border-radius:24px;display:grid;place-items:center;background:linear-gradient(135deg,var(--pink),#826cff);color:#fff;font-size:26px;font-weight:900}.mini{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:14px}.mini div{padding:18px 7px;text-align:center;border:1px solid #edf0f7;border-radius:14px;font-weight:800;color:#5c6c90}
+    section{padding-top:76px}.title{display:flex;align-items:center;gap:15px;margin-bottom:26px}.num{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,var(--pink),#826cff);color:#fff;font-weight:900}.title h2{margin:0;font-size:30px}.title small{display:block;margin-top:5px;color:#8a96ad;letter-spacing:.08em}.grid2,.grid3,.grid4,.grid5{display:grid;gap:16px}.grid2{grid-template-columns:repeat(2,1fr)}.grid3{grid-template-columns:repeat(3,1fr)}.grid4{grid-template-columns:repeat(4,1fr)}.grid5{grid-template-columns:repeat(5,1fr)}.card{padding:28px;border:1px solid #edf0f7;border-radius:24px;background:#fff;box-shadow:0 12px 34px #4754810d}.card h3{margin-top:0}.card p{color:var(--muted);line-height:1.8}.keywords{display:flex;flex-wrap:wrap;gap:9px}.keywords b{padding:10px 13px;border:1px solid #ffd7e9;border-radius:999px;background:#fff3f8;color:#a23b72;font-size:13px}.swatch{height:80px;border-radius:14px;margin-bottom:10px}.color b,.color code{display:block}.color code{margin-top:4px;color:#8a96ad}.store{padding:18px;border:1px solid #e8edf5;border-radius:28px;background:#fff;box-shadow:0 20px 52px #414e7d16}.nav{display:flex;align-items:center;gap:14px;padding:4px 4px 16px}.nav .search{flex:1;padding:12px 15px;border-radius:12px;background:#f5f8fd;color:#96a2b8}.storehero{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;padding:32px;border-radius:24px;background:linear-gradient(135deg,#eaf5ff,#fff0f8 52%,#efe9ff)}.storehero h3{font-size:36px;margin:10px 0}.storehero strong{color:var(--pink)}.storehero button,.buy{border:0;border-radius:12px;background:var(--pink);color:#fff;padding:11px 14px;font-weight:900}.jp{min-height:185px;border-radius:20px;display:grid;place-items:center;text-align:center;background:linear-gradient(145deg,#81c8ff,#f2b5dc 60%,#d8c5ff);color:#173166}.jp b{font-size:27px}.products{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:15px}.product{padding:12px;border:1px solid #edf0f6;border-radius:18px}.product img{width:100%;height:155px;object-fit:cover;border-radius:13px;display:block}.product h4{margin:11px 0 6px}.product p{font-size:12px;color:#79849d}.row{display:flex;justify-content:space-between;align-items:center}.row b{font-size:18px;color:#2964e5}.platform{padding:22px;border:1px solid #edf0f7;border-radius:24px;background:#fff}.mock{height:210px;border:1px solid #e3e9f4;border-radius:18px;background:#f8faff;padding:12px;position:relative;overflow:hidden}.top{height:25px;border-radius:9px;background:#dce9ff}.banner{height:88px;margin-top:10px;border-radius:12px;background:linear-gradient(135deg,#9fcfff,#ffc0dc)}.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}.tiles i{height:55px;border-radius:10px;background:linear-gradient(145deg,#f8d0e4,#dce9ff)}.phone{width:125px;margin:auto;border:7px solid #14224a;border-radius:28px;padding:9px;background:#fff}.phone .banner{height:80px}.phone .tiles{grid-template-columns:repeat(2,1fr)}.flow{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}.step{padding:16px;text-align:center;border:1px solid #edf0f6;border-radius:17px;background:#fff}.step span{width:30px;height:30px;margin:0 auto 8px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--pink),#826cff);color:#fff;font-weight:900}.features{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}.feature{display:flex;gap:12px;padding:18px;border:1px solid #edf0f6;border-radius:18px;background:#fff}.feature em{font-style:normal;font-size:25px}.feature p{margin:4px 0 0;color:#73809b;font-size:13px}.foot{margin-top:76px;padding-top:28px;border-top:1px solid #e7ebf3;display:flex;justify-content:space-between;align-items:center}.foot b{font-size:25px}.foot span{color:var(--pink);font-size:12px}
+    @media(max-width:900px){.hero,.storehero{grid-template-columns:1fr}.grid5{grid-template-columns:repeat(2,1fr)}.grid4,.products{grid-template-columns:repeat(2,1fr)}.grid3,.grid2{grid-template-columns:1fr}.flow{grid-template-columns:repeat(2,1fr)}.features{grid-template-columns:1fr 1fr}.hero{padding:32px}.art{margin-top:10px}}
+    @media(max-width:560px){.wrap{padding:14px 14px 50px}.hero h1{font-size:42px}.grid4,.products,.features,.flow{grid-template-columns:1fr}.grid5{grid-template-columns:repeat(2,1fr)}.nav{flex-wrap:wrap}.nav .search{order:3;flex-basis:100%}.foot{align-items:flex-start;flex-direction:column;gap:10px}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <span class="badge">DIGIHUB / デジハブ · MINI PROJECT</span>
+      <h1>Japanese Anime Digital Store</h1>
+      <p>แนวคิดการออกแบบร้านค้าสินค้าดิจิทัลที่ผสมความเป็นญี่ปุ่น โทนซากุระ และกลิ่นอาย Anime เข้ากับ UI ที่ใช้งานง่าย ดูทันสมัย และมีเอกลักษณ์</p>
+      <div class="tags"><span>Web App</span><span>Desktop App</span><span>Mobile App</span></div>
+    </div>
+    <div class="art"><div class="window"><div class="dots"><i></i><i></i><i></i></div><div class="mascot"><div class="cat">ฅ^•ﻌ•^ฅ</div><div><h2 style="margin:0">DigiHub</h2><small>Digital Ideas, Japanese Inspiration</small></div></div><div class="mini"><div>eBook</div><div>Template</div><div>Source Code</div></div></div></div>
+  </header>
+
+  <section><div class="title"><div class="num">01</div><div><h2>คอนเซ็ปต์การออกแบบร้านค้า</h2><small>CONCEPT & VISUAL DIRECTION</small></div></div>
+    <div class="grid2"><article class="card"><h3>แนวคิดหลัก</h3><p>DigiHub เป็นร้านค้าสินค้าดิจิทัลสำหรับ eBook, Template, Source Code, Online Course และ Design Assets โดยใช้ธีมญี่ปุ่น–Anime เพื่อสร้างบรรยากาศที่เป็นมิตร สดใส และจดจำง่าย</p><p>ดีไซน์เน้นความสมดุลระหว่างความน่ารักแบบ Kawaii กับโครงสร้าง UI ที่เป็นระบบ เพื่อให้ผู้ใช้ค้นหา เลือกซื้อ ชำระเงิน และดาวน์โหลดสินค้าได้โดยไม่สับสน</p></article><article class="card"><h3>Design Keywords</h3><div class="keywords"><b>Sakura</b><b>Anime</b><b>Kawaii</b><b>Clean UI</b><b>Rounded</b><b>Soft Shadow</b><b>Japanese Accent</b><b>Cross-platform</b></div></article></div>
+  </section>
+
+  <section><div class="title"><div class="num">02</div><div><h2>Design System</h2><small>COLOR · SHAPE · INTERFACE LANGUAGE</small></div></div>
+    <div class="grid5">
+      <div class="card color"><div class="swatch" style="background:#ff5ca8"></div><b>Sakura Pink</b><code>#FF5CA8</code></div>
+      <div class="card color"><div class="swatch" style="background:#5aa7ff"></div><b>Sky Blue</b><code>#5AA7FF</code></div>
+      <div class="card color"><div class="swatch" style="background:#9a7bff"></div><b>Lavender</b><code>#9A7BFF</code></div>
+      <div class="card color"><div class="swatch" style="background:#fff9f2;border:1px solid #eee"></div><b>Cream</b><code>#FFF9F2</code></div>
+      <div class="card color"><div class="swatch" style="background:#7adfc9"></div><b>Mint</b><code>#7ADFC9</code></div>
+    </div>
+  </section>
+
+  <section><div class="title"><div class="num">03</div><div><h2>ตัวอย่างหน้าร้านและสินค้า</h2><small>STOREFRONT PREVIEW</small></div></div>
+    <div class="store"><div class="nav"><b>DigiHub <span style="color:#ff5ca8;font-size:12px">デジハブ</span></b><div class="search">ค้นหาสินค้า เช่น eBook, Template, คอร์สเรียน...</div><b>🛒 3</b></div>
+      <div class="storehero"><div><small>DIGITAL PRODUCTS FOR A BRIGHTER TOMORROW</small><h3>ค้นพบสินค้าดิจิทัลที่ใช่<br><strong>เริ่มสร้างได้ทันที</strong></h3><p>แหล่งรวมสินค้าดิจิทัลสำหรับนักเรียน นักพัฒนา และครีเอเตอร์</p><button>เลือกดูสินค้า →</button></div><div class="jp"><div><div style="font-size:40px">🌸</div><b>アイデアを<br>かたちに</b><div style="color:white;margin-top:8px">Turn ideas into something real.</div></div></div></div>
+      <div class="products">
+        <article class="product"><img src="https://raw.githubusercontent.com/bfirstkok/lumishelf-vibe-ebook-2026/main/assets/ebook-illustrations/small-systems-better-life.png" alt=""><h4>eBook: Productivity Hacks</h4><p>พร้อมดาวน์โหลดหลังชำระเงิน</p><div class="row"><b>฿199</b><button class="buy">เพิ่มลงตะกร้า</button></div></article>
+        <article class="product"><img src="https://raw.githubusercontent.com/bfirstkok/lumishelf-vibe-ebook-2026/main/assets/ebook-illustrations/coffee-and-rain.png" alt=""><h4>Notion Student Planner</h4><p>พร้อมดาวน์โหลดหลังชำระเงิน</p><div class="row"><b>฿199</b><button class="buy">เพิ่มลงตะกร้า</button></div></article>
+        <article class="product"><img src="https://raw.githubusercontent.com/bfirstkok/lumishelf-vibe-ebook-2026/main/assets/ebook-illustrations/sqlite-task-manager-pro.png" alt=""><h4>Source Code: Web Portfolio</h4><p>พร้อมดาวน์โหลดหลังชำระเงิน</p><div class="row"><b>฿349</b><button class="buy">เพิ่มลงตะกร้า</button></div></article>
+        <article class="product"><img src="https://raw.githubusercontent.com/bfirstkok/lumishelf-vibe-ebook-2026/main/assets/ebook-illustrations/media-player-pro.png" alt=""><h4>คอร์ส Python พื้นฐาน</h4><p>พร้อมดาวน์โหลดหลังชำระเงิน</p><div class="row"><b>฿890</b><button class="buy">เพิ่มลงตะกร้า</button></div></article>
+      </div>
+    </div>
+  </section>
+
+  <section><div class="title"><div class="num">04</div><div><h2>การออกแบบทั้ง 3 แพลตฟอร์ม</h2><small>RESPONSIVE EXPERIENCE</small></div></div>
+    <div class="grid3">
+      <article class="platform"><div class="mock"><div class="top"></div><div class="banner"></div><div class="tiles"><i></i><i></i><i></i></div></div><h3>Web App</h3><p>Navbar ด้านบน พื้นที่แสดงสินค้ากว้าง เหมาะกับการเลือกดูและเปรียบเทียบสินค้า</p></article>
+      <article class="platform"><div class="mock"><div style="width:50px;height:100%;float:left;border-radius:11px;background:linear-gradient(#ffd3e6,#ebe4ff);margin-right:10px"></div><div class="banner"></div><div class="tiles"><i></i><i></i><i></i></div></div><h3>Desktop App</h3><p>ใช้ Sidebar เพื่อเข้าถึงสินค้า ดาวน์โหลด คำสั่งซื้อ และการตั้งค่าได้รวดเร็ว</p></article>
+      <article class="platform"><div class="mock" style="display:grid;place-items:center"><div class="phone"><div class="top" style="width:45px;margin:auto"></div><div class="banner"></div><div class="tiles"><i></i><i></i><i></i><i></i></div></div></div><h3>Mobile App</h3><p>ออกแบบสำหรับการสัมผัส ใช้ Bottom Navigation และ Product Card ขนาดเหมาะกับมือถือ</p></article>
+    </div>
+  </section>
+
+  <section><div class="title"><div class="num">05</div><div><h2>ฟีเจอร์หลักและ User Flow</h2><small>CORE FEATURES</small></div></div>
+    <div class="flow"><div class="step"><span>1</span><b>Login / สมัครสมาชิก</b></div><div class="step"><span>2</span><b>เลือกสินค้า</b></div><div class="step"><span>3</span><b>รายละเอียดสินค้า</b></div><div class="step"><span>4</span><b>เพิ่มลงตะกร้า</b></div><div class="step"><span>5</span><b>ชำระเงิน</b></div><div class="step"><span>6</span><b>ดาวน์โหลดสินค้า</b></div></div>
+    <div class="features"><div class="feature"><em>🔎</em><div><b>ค้นหาและหมวดหมู่</b><p>ค้นหาสินค้าดิจิทัลได้รวดเร็ว</p></div></div><div class="feature"><em>🛒</em><div><b>ตะกร้าสินค้า</b><p>จัดการรายการก่อนชำระเงิน</p></div></div><div class="feature"><em>💳</em><div><b>ชำระเงิน</b><p>ขั้นตอน Checkout ที่เข้าใจง่าย</p></div></div><div class="feature"><em>⬇️</em><div><b>ดาวน์โหลด</b><p>รับไฟล์ดิจิทัลได้ทันที</p></div></div><div class="feature"><em>📦</em><div><b>ประวัติคำสั่งซื้อ</b><p>ตรวจสอบรายการซื้อย้อนหลัง</p></div></div><div class="feature"><em>🛠️</em><div><b>Admin</b><p>จัดการสินค้าและคำสั่งซื้อ</p></div></div></div>
+  </section>
+
+  <footer class="foot"><div><b>DigiHub <span>デジハブ</span></b><div style="color:#8793aa;margin-top:6px">Digital Ideas, Japanese Inspiration.</div></div><div style="text-align:right"><b style="font-size:15px">Mini Project — UI Design</b><div style="color:#8793aa;margin-top:5px">Web · Desktop · Mobile</div></div></footer>
+</div>
+</body>
+</html>
